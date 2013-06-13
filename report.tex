@@ -4,6 +4,7 @@
 \usepackage{graphicx} 
 \usepackage{listings}
 \usepackage{fancyvrb}
+\usepackage{float}
 % \usepackage{bera}% optional: just to have a nice mono-spaced font
 \usepackage{xcolor}
 
@@ -69,7 +70,7 @@ Giuseppe Rizzo}
  \tableofcontents
 
 \chapter{Introduction}
-Since its creation in 1993, email did not change much in the way we use it. It's basic idea is simple: a plain exchange of textual (html) messages through  the internet. Thanks to its simplicity on these days most of us receive a huge amount of emails in a single day which makes almost impossible to focus on what's important to us and leave for later what's secondary.
+Since its creation in 1993, email did not change much in the way we use it. It's basic idea is simple: a plain exchange of textual (html) messages through  the internet. Thanks to its simplicity today most of us receive a huge amount of emails in a single day which makes almost impossible to focus on what's important to us and leave for later what's secondary.
 
 On the other end this huge amount of informations is not exploited as we could: \emph{Entity Recognition}, \emph{Clustering} and \emph{Semantic Web} are only examples of the technologies that can be applied to take advantage of this giant datasets.
 
@@ -77,18 +78,17 @@ Along with extracting informations from data comes the evolution of the web: fro
 
 
 
-\section*{Motivation for the project}
+\section{Motivation for the project}
 
 The need for a new approach to electronic mail is getting bigger and bigger along with the amount of messages we receive daily. Moreover we think the potential of building a clustering algorithm based on the entity recognition system provided by the NERD\footnote{Named Entities Recognition and Disambiguation http://nerd.eurecom.fr} framework developed in the Multimedia research group in Eurecom is very high and valuable for improving emails systems.
 
 
 \chapter{Similar projects}
-%Shorten this chapter, and just put short description of the projects, and the conclusions as found in the presentation from week 1 ?
 
-There is a lot of excitement about building and innovating the world of emails, both in universities and in IT companies. We studied some existing projects in order to understand what tecniques were already been used, what are the major approaches used by todays systems and how we can build emails applications better.
+There is a lot of excitement about building and innovating the world of emails, both in universities and in IT companies. We studied some existing projects in order to understand what techniques have already been used, what are the major approaches used today and how we can build emails applications better.
 
 
-These are the projects we study in particular for mining data:
+These are the projects we studied in particular for mining data:
 \begin{itemize}
 \item Manu Aery and Sharma Chakravarthy developed eMailSift \cite{Aery2005}: an email classification system based on structure and content. They propose a supervised data mining technique based on the exploitation of the structure informations present in email messages.
 \item In \cite{Drezde2008} is described an approach to determine if a message should be ``replied to'' or if it ``requires attachments''. Although the focus is very specific it's interesting to see that their approach used a global training set to try to make guess without a specific training set for each user. This idea lend us to think that clustering was to be preferred with respect to classification.
@@ -99,44 +99,48 @@ Considering the development of a Web Application as important as the clustering 
 \begin{itemize}
 \item GMail (\texttt{http://mail.google.com}) It's by far the leader in the market and it's considered to be the first \emph{AJAX} web app to be developed. While it offer some ``intelligent'' service (attachment prediction, ``important'' email labeling) it should be credited for building a great UI along with a reliable system.'
 \item Alto Mail (\texttt{https://login.altomail.com/login/signin}) while still in closed beta and not available for the public (we didn't manage to try it out) aims to provide better understanding of email subscriptions: they state that Alto Mail understands that products like Facebook, Twitter, LinkedIn, Amazon, (and more?) regularly send notifications and receipts and make it easy to classify or group them. 
-\item As a UI starting point we studied MyMail (\texttt{http://dennyshess.ch/mymail/}) which is a mocked up email web client. It's interface allow to manage a lot of differents email folder at the same time, which is why we chose to it.
+\item As a UI starting point we studied MyMail (\texttt{http://dennyshess.ch/mymail/}) which is a mocked up email web client. It's interface allow to manage a lot of different email folders at the same time, which is why we chose it.
 \end{itemize}
-We consider many others papers and articles where, those selected represent the most significant for the development.
- 
+
 
 \chapter{Architectural overview}
-In the next chapters we are going to analyze the choice made while designing the system along with some technical description and specification about the implementation. This chapter is divided in three section which reflects the main parts of this project itself: the first part describe the overall architecture of the system, the second section details the implementation of the server-side part of the system together with the specifications of how the clustering algorithm works. In the last part we will describe the prototyping of the client side web application.
+In the next chapters we are going to analyze the choice made while designing the system along with some technical description and specification about the implementation. This chapter is divided in three section which reflects the main parts of this project itself: the first part describe the overall architecture of the system, the second section details the implementation of the server-side part of the system together with the specifications of how the clustering algorithm works. In the last part we will describe the process of building the client side web application.
 
-Although this document tries to separate as much as possible this three aspect we must point out that both the design and the development of the applications was much more parallel than sequential and so are some technical considerations regarding the overall architecture.
+Although this document tries to separate as much as possible this three aspect we must point out that both the design and the development of the applications were much more parallel than sequential and so are some technical considerations regarding the overall architecture.
 
 The application \emph(bettermail) is designed with this goal: provide an intelligent system capable of extracting semantic information from the emails body and use them to automatically classify (label) emails. We investigate how a named entities based clustering approach could prove itself in make the email experience better by automating the email labeling process. Moreover the project aims to give the user a simple and intuitive user interface to access those information.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=15cm]{Architecture_Overview}
+  \caption{The top level architecture of \emph{bettermail}}
+  \label{fig:arch}
+\end{figure}
 
-\includegraphics[width=15cm]{Architecture_Overview}
-As described in the picture above the application is strongly separated in two parts: client and server side. Because the main idea is to build the client as a SPA\footnote{Single Page Application - http://en.wikipedia.org/wiki/Single-page\_application} and at the same time to make the server functionalities available to potentially more then one client-side application we propose REST\footnote{Representational State Transfer - a style of software architecture for distributed system} as the layer for building the main communication infrastructure. 
-We first choose GMail as the targeted email service (mostly because of its wide diffusion) but the final choice is to use a generic IMAP connection to offer better integration with various email provider (although the application is developed and tested with GMail).
+As described in~\ref{fig:arch} the application is strongly separated in two parts: client and server side. Because the main idea is to build the client as a SPA\footnote{Single Page Application - http://en.wikipedia.org/wiki/Single-page\_application} and at the same time to make the server functionalities available to potentially more then one client-side application we propose REST\footnote{Representational State Transfer - a style of software architecture for distributed system} as the layer for building the main communication infrastructure. 
+We first chose GMail as the targeted email service (mostly because of its wide diffusion) but the final choice was to use a generic IMAP connection to offer better integration with various email provider (although the application has been developed and tested with GMail).
 \chapter{The Server}
 
-The design and development of the server is one of the major activities of this project. Because our goal is to build a working application prototype from the ground up we first need to get the integration with an existing email provider, thus we build the IMAP module. Next step is to expose this IMAP capabilities and, as discussed previously, we build a RESTfull web service to access it, which allow us to start working on the client too. After that we are finally able to start working on clustering and labeling.
+The design and development of the server is one of the major activities of this project. Because our goal is to build a working application prototype from the ground up we first needed to get the integration with an existing email provider, thus we build the IMAP module. Next step was to expose this IMAP capabilities and, as discussed previously, we build a RESTfull web service to access it, which allow us to start working on the client too. After that we were finally able to start working on clustering and labeling.
 
 \section{About general technical choices}
-The whole server is built using Node.js. It is an event-driven system, built on top of Google's V8 javascript engine which provides a very fast and scalable infrastructure to build server side applications. Because of it's event-driven nature it has proved to be very suitable for I/O intensive application while being comparable to multi-threaded system under a CPU intensive workload. Among performances one of the main idea behind this choice is the developing paradigm. While building an application with a strongly typed language like Java requires a very long and precise designing phase to avoid the need of big refactoring, javascript is generally considered better for fast prototyping and Agile software development \footnote{Although the personal opinion of the author is that javascript can be better even in a more ``classical'' waterfall design end development cycle this matter is too long to be discussed here}.
+The whole server is built using Node.js. It is an event-driven system, built on top of Google's V8 javascript engine which provides a very fast and scalable infrastructure to build server side applications. Because of it's event-driven nature it has proved to be very suitable for I/O intensive application while being comparable to multi-threaded system under a CPU intensive workload. Among performances one of the main idea behind this choice is the developing paradigm. While building an application with a strongly typed language like Java requires a very long and precise designing phase to avoid the need of big refactoring, javascript is generally considered better for fast prototyping and Agile software development \footnote{Although the personal opinion of the authors is that javascript is a great language whatever the development model}.
 
 REST is chosen as the main API access point because of two main reasons: first of all it requires nothing but a client able to use basic HTTP verbs - in contrast with other system like SOAP that requires additional layers or WCF which is specific to a platform - and because it's generally simpler to reason about and define: once the resources' URI are defined the operations on them follows by the definition of RESTfull web service itself. 
 
-All this services relies on a MongoDB powered back-end database which is the natural choice for working in accordance with Agile development and together with Node.js.
+All this services relies on a back-end database powered by MongoDB which is the natural choice for working in accordance with Agile development methodology and together with Node.js.
 
 \section{Building the IMAP module}
 The module responsible for handling the communication with the IMAP server has passed various iterations.
-First we tried to build the basic functions to access the IMAP server, query for emails range, add and remove labels and so on\footnote{node-imap (https://github.com/mscdex/node-imap) and mailparser (https://github.com/andris9/mailparser) had been used as a starting point}. 
+First we tried to build the basic functions to access the IMAP server: query for emails range, add and remove labels, retrieve email body, etc.\footnote{node-imap (https://github.com/mscdex/node-imap) and mailparser (https://github.com/andris9/mailparser) had been used as a starting point}. 
 
-Subsequently, following the guidelines described in RFC4549\footnote{Synchronization Operations for Disconnected IMAP4 Client (http://www.faqs.org/rfcs/rfc4549.html)} we implemented a basic IMAP client (on the server) with support for incremental syncronization. 
-All these feature where then exposed via RESTfull APIs described in the next chapter.
+Subsequently, following the guidelines described in RFC4549\footnote{Synchronization Operations for Disconnected IMAP4 Client (http://www.faqs.org/rfcs/rfc4549.html)} we implemented a basic IMAP client (on the server) with support for incremental synchronization. 
+All these feature where then exposed via RESTfull APIs, described in the next chapter.
 
 One of the major problems encountered within this phase resides in the sequential nature of the IMAP protocol itself. The first approach was to create a new connection with the IMAP server for each requested resource. While this approach seems fine when tested in a manual request sequence flow it turned out that GMail, like many other providers, impose a very low limit on the maximum number of concurrent request for the same account (it is not specified in the documentation but we experienced it to be around 10). This behavior force us to a fixed, sequential approach, which solved the problem.
 
 \section{The REST server}
 For simplifying the process of building our APIs we decided to use the \emph{express} Node.js framework.
-Its architecture allow to define ``routes'' on which you can define the behavior for each separate HTTP verb. In addition it provides a system for plug middleware in the system before routes are handled (for example authenticating user before serving the request). We used this feature to implement a CORS\footnote{Cross-origin resource sharing, a new standard to allow web applications to safely bypass the same origin policy} compliant web service.
+Its architecture allow to define ``routes'' on which you can define the behavior for each separate HTTP verb. In addition, it provides a system for plug middleware in to intercept request before routes handler(for example authenticating user before serving the request). We used this feature to implement a CORS\footnote{Cross-origin resource sharing, a new standard to allow web applications to safely bypass the same origin policy} compliant web service.
 
 These are the main resources defined with the associated URI.Except for labels, the service support the GET verb only because the first goal of the application is email reading and retrieving. Anyway the architecture would allow to easily add feature like deleting or sending new emails provided to use an SMTP module which at the moment we didn't yet wrote.
 Each method exchanges informations in the JSON format. The structure of the returned item is listed after each resource.
@@ -247,7 +251,7 @@ Each method exchanges informations in the JSON format. The structure of the retu
 \end{itemize}
 
 \section{Named Entity Recognition}
-Each email content is first parsed by the NERD framework thanks to the node module provided by the team\footnote{https://github.com/giusepperizzo/nerd4node}. The email body is then annotated with a set of informations; for our work we considered two of them: \texttt{NerdType} which represent the ``high level'' class of the part of the text considered (e.g. Person, Thing, Date ...) and \texttt{label}, the specific entity recognized by NERD (e.g. Barack Obama, Personal Computer, 2012 ...). 
+Each email content is first parsed by the NERD framework thanks to the node module provided by the team\footnote{https://github.com/giusepperizzo/nerd4node}. The email body is then annotated with a set of informations; for our work we considered two of them: \texttt{NerdType} which represent the ``high level'' class of the part of the text considered (e.g. Person, Thing, Date ...) and \texttt{label}, the specific entity recognized by NERD (e.g. Barack Obama, Personal Computer,the year 2012 ...). 
 Those informations are then stored permanently on the database for subsequent elaboration.
 
 \section{The clustering algorithm}
@@ -256,7 +260,7 @@ The basic idea behind the approach to labeling emails is divided in three step: 
 
 
 \subsection{Defining Centroids}
-Instead of using a pure k-means approach with random starting centroids we choose to firt use an Agglomerative Hybrid Clustering (AHC) implementation on a randomly selected subsets of emails. This algorithm outputs a three known as a \emph{dendogram} in which each node correspond to a partition of the clusters and it's child as progressive sub-partitions. We traverse this three selecting all the node smaller then a parameter $L$ as basic clusters.
+Instead of using a pure k-means approach with random starting centroids we choose to firt use an Agglomerative Hybrid Clustering (AHC) implementation on a randomly selected subsets of emails. This algorithm outputs a tree known as a \emph{dendogram} in which each node correspond to a partition of the clusters and it's child as progressive sub-partitions. We traverse this three selecting all the node smaller then a parameter $L$ as basic clusters.
 For each of this base clusters (if they're bigger than $L/k$ with $k$ parameter) we pick a random element in it as one of the starting centroids for the next step.
 
 \subsection{K-Means}
@@ -283,12 +287,134 @@ Multiple approaches on which type of client to develop are available. Among othe
 \item creating a basic email web client from scratch
 \end{itemize}
 
-Because the first approach seems more reasonable in terms of time and efforts we pick it as first choice, specifically targeting GMail. After few tries with prototyping and reading a lot of documentation\footnote{https://developers.google.com/gadgets/} two problems arise: first of all the main APIs for adding functionalities to gmail is deprecated and won't be supported after July 2013. On the other end as the term itself suggests, hacking the website is full of problems: programming it's tedious, it requires a lot of DOM manipulation and traversing, done without a clear specification of how the HTML is structured and thus, how to manipulate it and there is no guarantee for the page structure not to change without notice.
+Because the first approach seems more reasonable in terms of time and efforts we picked it as first choice, specifically targeting GMail. After few tries with prototyping and reading a lot of documentation\footnote{https://developers.google.com/gadgets/} two problems arose: first of all the main APIs for adding functionalities to gmail is deprecated and won't be supported after July 2013. On the other end as the term itself suggests, hacking the website is full of problems: programming it's tedious, it requires a lot of DOM manipulation and traversing, done without a clear specification of how the HTML is structured and thus, how to manipulate it and there is no guarantee for the page structure not to change without notice.
 
 For this reason our final solution is a basic, web based, email client.
+\section{Design}
+
+The design proposed for the application follows three main principles: it should be simple, effective and (possibly) good looking.
+While most of the web applications in the wild use a similar approach for organizing emails label or folder, we think that a different design concept could strongly improve both the usability and the simplicity.
+
+The common approach nowadays is to have a big list of emails - the current folder - and some sort of sidebar or navigation menu for switching between folders. 
+We believe that in a scenario where the user make intense use of classification tool for dividing his email this design is suboptimal.
+One main drawback have been identified: there is no easy way to have an overview of your folders.
+This considerations lead to the solution we propose.
+
+\subsection{Sketches}
+
+\subsubsection{Design Concept: a GMail plug-in}
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=1.5in]{old_grid}
+  \includegraphics[height=1.5in]{old_grid_open}
+  \caption{The first design idea concept grid view}
+  \label{fig:old1}
+\end{figure}
+Figure~\ref{fig:old1} shows the first application concept: the main GMail list is replaced by a grid system, with one cell for each label. Each box contains basic information on the mailbox like the number of unread messages over the total, last message date and so on.
+When a box is clicked it shows the classic GMail emails list with the option to expand and pass to normal label view. 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=2in]{old_label}
+  \includegraphics[height=2in]{old_label_detail}
+  \caption{How to add labeling informations to GMail}
+  \label{fig:old2}
+\end{figure}
+In~\ref{fig:old2} is shown the basic idea of how to add intense labeling feature to google mail interface. Because there is no much space available in the page, we tried to exploit the blank one on the right, which is rather small but the only one available. It shows a small box, one for each label assigned to the email and a list of suggested label, which were supposed to be extracted by the ``intelligent'' module of the system.
+
+Because the GMail plug-in solution turned out to be non feasible, we had to discard the solution (while the basic grid system was already implemented as an AngularJS directive\footnote{This directive is available at https://github.com/artoale/griddy}) as shown in ~\ref{fig:griddy}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{griddy}
+  \caption{Griddy directive prototype}
+  \label{fig:griddy}
+\end{figure}
+\subsubsection{Next level: a new web mail}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{new}
+  \caption{Sketch of \emph{bettermail} main interface}
+  \label{fig:new1}
+\end{figure}
+As you can see from figure~\ref{fig:new1} we propose a novel design based on a column system. 
+Each column contains email from a specific label, with summary information (sender, date and time, starred flag, first email words). The number of column showed is supposed to be adaptable depending on the screen size. 
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{new_2_cols}
+  \caption{Detail of an open email}
+  \label{fig:new2}
+\end{figure}
+
+When a specif email is selected the relative column is moved to the left, the email highlighted and the content is shown on the left, replacing the previous columns (~\ref{fig:new2}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{new_3_cols}
+  \caption{An additional view for users with many folders}
+  \label{fig:new3}
+\end{figure}
+An additional view we designed is here reported in~\ref{fig:new3}(even if not implemented) for user with a large number of labels/folders for whom the number of columns may be a limit. In this case each column contain a box (much like the proposed GMail grid) which is expandable in the message list which behave like the basic homepage.
+
+\subsubsection{Thinking mobile}
+Because of the growth of the smartphone market it considered good practice to develop web application thinking mobile first, in order to allow for all the features to be present in the application whatever the screen resolution or size. We propose in figure~\ref{fig:mobile} the ``natural'' adaptation of the desktop application to the mobile world, where a single column is displayed on screen and moving between column is a swipe gesture.
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=2in]{list}
+  \includegraphics[height=2in]{email}
+  \caption{the mobile version of \emph{bettermail}}
+  \label{fig:mobile}
+\end{figure}
+\subsection{Final result}
+
+The steps presented in the previous section demonstrate the same step followed when designing and building the application. We present here some screenshots of the final result.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{main}
+  \caption{The main interface of \emph{bettermail}}
+  \label{fig:main}
+\end{figure}
+In picture~\ref{fig:main} the main interface of the application is shown. It follows quite tightly the structure designed in the sketches, with a 4-column design, one per label, and a top bar for navigating between them.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{main_search}
+  \caption{\emph{bettermail} search capabilities}
+  \label{fig:main_search}
+\end{figure}
+Each column provides a collapsed search box which allow users to search for keyword in message subject and headers as shown in~\ref{fig:main_search}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{main_modal_detail}
+  
+  \vspace{0.2in}
+
+  \includegraphics[width=4in]{main_options}
+  \caption{The modal window for adding new columns and the drop-down menu for managing a column}
+  \label{fig:main_modal}
+\end{figure}
+Picture~\ref{fig:main_modal} shown two details of the applications: the modal box for adding new columns, accessible trough the top-right button and the drop-down option menu (one for each column) to remove it or access the clustering functionalities.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=4in]{clusters}
+  
+  \vspace{0.2in}
+
+  \includegraphics[width=3in]{clusters_detail}
+  \caption{Main clustering window and the naming box detail}
+  \label{fig:cluster}
+\end{figure}
+
+We think that using the same pattern in both the main page and in that for cluster management is a plus both because it improves usability - the user already knew the interface - and because it fits well in the context: each column is a label subdivision and an overview of all this subdivision is easily accessed thanks to this kind of layout. The label name is replaced here by an input box for entering the new name and each cluster proposed can be accepted or declined individually.
+Moreover, it is possible to instruct the system that a specific email does not belong to the specified cluster and thus remove it from the newly created box.
 
 \section{Architecture}
-As previously noted we decided to implement the client as a SPA. That is because interaction obtained thanks to the intensive use of XHR\footnote{the main object used for sending asynchronous HTTP requests} it's widely considered ways better with respect to the classical multi-page model. In fact most web applications\footnote{the terms doesn't refer to general web sites but to complete applications built on top of the web platform like gmail, Cloud9IDE, google drive...} today prefer this model to offer a faster and more engaging UI to its users. 
+As previously noted we decided to implement the client as a SPA. That is because interaction obtained thanks to the intensive use of XHR\footnote{the main object used for sending asynchronous HTTP requests} it's widely considered ways better with respect to the classical multi-page model. In fact most web applications\footnote{the terms doesn't refer to general web sites but to complete applications built on top of the web platform like GMail, Cloud9IDE, Google Drive...} today prefer this model to offer a faster and more engaging UI to its users. 
 
 To better structure our work we use an MVC javascript framework chosen between Backbone.js, Ember and AngularJS. The first is the oldest and has many interesting feature, but it force users to a specif type of data access, which is pretty far from plain javascript, and doesn't provide by itself a clear, structured way of developing the application. While Ember may be a good choice we choose the latter among those.
 Because the choice of a framework strongly effects the overall architecture of the system, on the next session we will explain why we use AngularJS and how this choice effects the client structure.
@@ -325,19 +451,71 @@ Moreover, together with AngularJS we used other external resources to speed up a
 \item Bower (\texttt{http://bower.io}): it offers a solution to the front-end package management problem, as it allows to maintain and manage package installations and dependencies for generic front-end development resources (typically javascript and CSS libraries). 
 \item Twitter Bootstrap (\texttt{http://twitter.github.io/bootstrap/}): a stylesheet framework which simplifies the development of user interfaces. It provides a grid system for layout definition and a wide set of components (buttons, tables, tooltips, etc...) 
 \end{itemize}
-\section{Design}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sequi, distinctio, voluptatum ratione recusandae perferendis laboriosam illum earum dicta consequatur nam.
-\subsection{Sketches}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet, pariatur, assumenda, labore ullam libero atque doloribus asperiores quasi est incidunt officia numquam doloremque ut temporibus quis nisi totam cum laudantium tenetur nihil et! Saepe, impedit maxime commodi ab minus provident sunt cupiditate voluptates veritatis eveniet ex expedita dolorum dolorem non minima perspiciatis beatae porro soluta officiis nihil eligendi aliquid explicabo eum. Deserunt, commodi voluptatem eligendi nobis nihil libero ducimus sunt distinctio asperiores ratione porro quam quae vel modi sit necessitatibus explicabo magnam ipsa ad suscipit blanditiis cupiditate ipsam error illum voluptates dicta cum consectetur quibusdam eius quas beatae reiciendis laudantium possimus. Officiis, ab voluptatibus corporis quam assumenda harum facilis illo ex dolorem sunt doloremque hic unde repellat facere dolores accusantium soluta! Architecto, magnam nobis maiores beatae fuga sed voluptatibus cum nisi reiciendis iure id eum rem nihil velit non veritatis aliquam. Officiis, incidunt, itaque, perspiciatis reiciendis at ex consequatur tempora vel dolor commodi beatae molestias labore aut porro numquam architecto illum quae maiores blanditiis eaque quis reprehenderit enim amet cumque adipisci? Reprehenderit, animi, qui, quia repudiandae nam esse pariatur facere blanditiis aperiam inventore consequuntur voluptates dignissimos provident vel praesentium! Vero, nihil, consectetur magni possimus ratione ullam neque totam accusantium porro.
-\subsection{Prototypes}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempore, sapiente, odio, provident animi veniam incidunt vel blanditiis atque voluptatem laborum eveniet eligendi dignissimos libero amet natus ullam odit sint voluptatum saepe officiis iusto obcaecati itaque illo praesentium porro iste nulla quibusdam commodi aliquam. Qui, doloribus, quasi, alias cum neque nisi laborum quis porro hic quaerat inventore blanditiis voluptas nihil unde rerum repellendus quae. Molestias, numquam, expedita odio adipisci tenetur quasi animi sint veritatis placeat voluptatum dignissimos earum impedit maxime nulla accusamus doloribus atque magnam provident consequuntur quia quibusdam hic obcaecati inventore et ipsum quo similique odit itaque aperiam assumenda laborum sed dolorem quidem vitae corporis excepturi fugit! Illum, vel numquam esse corrupti facilis eaque mollitia praesentium harum assumenda a doloribus et eveniet iste asperiores optio doloremque ratione explicabo ut natus necessitatibus voluptate corporis sit vero sint saepe quos aliquam nobis cumque aspernatur non repellendus perspiciatis eum quas. Quo, iure, suscipit, aspernatur ipsum dignissimos assumenda enim aliquid velit impedit voluptatum omnis eligendi cumque incidunt quaerat quidem maiores inventore ratione officia facilis fuga dolorem quia voluptate quam consequuntur animi repudiandae natus nostrum! Modi, perspiciatis, eveniet, nostrum dolores ab fugit eum tempora eos iusto vel illum pariatur quibusdam temporibus officia quam enim necessitatibus ut eius libero nulla repellat. Quaerat, aut, voluptates, hic, commodi officia rerum nam consectetur necessitatibus fugiat ea vero atque voluptatem harum magnam expedita quam magni ab incidunt. At, magnam, fuga corporis rem vitae laborum veniam quos error aut minima ea odit itaque explicabo ducimus harum sint impedit neque recusandae ratione dignissimos quam maiores nulla natus sequi molestias libero necessitatibus amet perferendis pariatur eos saepe qui odio deleniti nemo commodi dolores ipsam consequuntur in autem magni. Saepe, quisquam ex odio dicta optio aut provident autem reprehenderit veritatis expedita illo eveniet ab rerum quas facilis aliquam quo corporis vero laudantium eos dolore!
-\subsection{Final result}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptate, amet repudiandae eaque saepe molestias inventore perspiciatis iste natus doloremque quo soluta temporibus ea minima veniam ipsam incidunt rem ut non accusantium corrupti veritatis autem a culpa suscipit laborum? Quam in tempora at sequi nobis eaque culpa. Ab, cupiditate, distinctio, rem, fugit sunt porro quae optio eveniet molestias reiciendis deleniti dolorum. Repudiandae, praesentium, placeat, ab, ipsum culpa sed illum sapiente quis eaque porro dolore facere quae nam ullam beatae laborum impedit amet officia asperiores accusantium laboriosam non deserunt aspernatur voluptate enim accusamus doloremque. Eaque quod officiis sed unde dolores repellendus quae!
+
 \chapter{Evaluation}
-\section{Analysis on a personal dataset}
-\section{Metric measures on ``enron'' dataset}
-\chapter{Conclusion/Future work}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quas, debitis accusantium ratione maxime veritatis eveniet nisi laborum cum labore libero modi amet odio inventore ipsum facere non voluptatum velit natus hic beatae quaerat fuga accusamus fugit excepturi perspiciatis aperiam neque aut culpa autem porro ea minus repudiandae aspernatur quam ducimus molestias eaque. Praesentium, odit, est, eos distinctio debitis repudiandae vero deleniti nihil molestiae sit ab reprehenderit tempore! Quibusdam, saepe, minima, libero, iure temporibus voluptate doloremque aliquid maxime nam deserunt quam odit illo voluptatibus ducimus non recusandae nesciunt ratione dicta consequuntur cumque. Esse, molestias, inventore labore incidunt quas distinctio perferendis animi odio ab ratione cupiditate qui eum aliquam? Deleniti, delectus nesciunt at quas eligendi fuga provident mollitia perferendis magnam laboriosam officia eaque harum animi culpa reprehenderit voluptate repellat iure quasi temporibus autem illo nemo sed quo eveniet laborum a similique nostrum rem adipisci rerum sint voluptatum accusantium ea. Asperiores, incidunt, non atque cupiditate fuga quasi perspiciatis. Deserunt, debitis nemo laudantium vero nisi qui enim voluptatum minus animi asperiores eius maiores voluptates atque voluptate dolores. Porro, voluptas, minus, rem asperiores fugiat eligendi commodi hic debitis eaque voluptates optio esse laudantium odit ab sequi harum recusandae amet iusto tempora expedita nisi reiciendis accusantium quisquam veritatis ipsam. Placeat, magni, rerum ipsam est a explicabo cupiditate repudiandae odit praesentium temporibus sequi voluptatem harum officia consequuntur laborum necessitatibus facilis! Numquam, expedita, iusto, animi laborum nihil omnis culpa impedit quisquam tempora adipisci iste odio nisi ducimus assumenda sint aut molestias. Cumque, doloremque, nemo, magni pariatur maxime adipisci nihil quibusdam ipsa earum perferendis alias libero eligendi excepturi voluptatum voluptate quas ullam consequatur voluptates distinctio tempora explicabo consequuntur id nostrum ad numquam maiores architecto fugiat repellendus quod beatae incidunt blanditiis necessitatibus aut quisquam quasi rem culpa. Id, maxime, autem, perspiciatis debitis fugit vero quia modi voluptatem temporibus vel similique.
+\section{Clustering}
+\subsection{Consideration on the personal dataset} % (fold)
+\label{sub:consideration_on_the_personal_dataset}
+The application has been developed with a strong focus on being working with real data. For that reason we choose our personal email account as the working dataset because we need the application to be able to operate on real IMAP connection. Therefore the definition and tuning for the clustering algorithm parameters has been done with subjective observation of the generated clusters.
+The main problems found by this personal analysis are listed below: 
+\begin{itemize}
+  \item K-means generates some empty clusters (which are then ignored)
+  \item Small and medium-size cluster are generally better than big ones
+  \item False positives can be found even in small clusters.
+  \item Very similar clusters are often disjointed 
+\end{itemize}
+
+Even if these consideration have very low scientific interest we find that are useful for better understanding how the clustering algorithm work on a dataset we know well. Moreover, having the whole application running on a real-life mailbox allow us to see it in action exactly like it would be in a production environment.
+
+% subsection consideration_on_the_personal_dataset (end)
+
+\subsection{Measures on ``enron'' dataset} % (fold)
+\label{sub:measures_on_enron}
+While a personal dataset may be good for personal evaluation and development it is good practice to test and measure performances on well known dataset. Regarding email, the most widely used dataset available to the community is the ``Enron Corpus'', a large database of over 1.7 million emails generated by 158 employees of the Enron Corporation and now freely available without privacy and legal restrictions.
+A lot of techniques exists for evaluate the goodness of a clustering algorithm. Because, for the time being, we only defined the distance functions while the algorithm itself is implemented by an external module, we did not use an internal evaluation criterion (intra-cluster and inter-cluster similarity) which requires knowledge of the cluster structure.
+We suggest instead the use of normalized mutual information or NMI as an external evaluation criteria as described in \cite{Manning2008}.
+
+% subsection measures_on_enron (end)
+
+\section{Evaluation of the UX}
+While designing and developing the application we tried to follow as much as possible a simple and coherent design, to get feedback from the project supervisors and from people around us to understand what should be done in order to improve it and make it better.
+However, evaluating the user experience is generally a hard task, because it means investigating how a person feels about using a system which is subjective, context-dependent and dynamic over time.
+A lot of different techniques have been developed both numerical (request people to fill in questionnaire and feedback form) or qualitative (Psychophysiological emotion measurements, Think aloud protocol, Expression observers) which requires people to be invited to a test and observed during this period.
+Because we do not have neither a large user base nor the resources required for an emotion evaluation we propose a method based on two technique, both of them requiring a small community of users to be available.
+\begin{itemize}
+  \item Request users to give feedback and improvement advice on the github issue tracker (we suppose our community to be a small set of developer and enthusiast, used to this tool)
+  \item Collect anonymous information on the application usage (time spent on each page, areas of the page clicked the most, feature usage), in order to better understand how people actually use the application.
+\end{itemize}
+
+\chapter{Conclusions and Future work}
+We consider the first goal of this project reached: we give a proof of concept of how email managing can be innovated and adapted to users need, both by providing new services and by new ideas in designing the user interface.
+
+We feel that, while emails are an ``old'' technology, their use is so intense - especially for professionals - that it mustn't be underestimated. As previously described a lot of player are actively participating in exploring novel ideas but it is not our interest to participate in this game as a competitor. 
+On the other side we strongly believe in the open source community - from where the tool we used for building \emph{bettermail} come - and we would like to give something back to this world. We plan to improve this application in both the client and the server side in order for anyone to be able to deploy and use it, experiment and eventually improve it.
+
+\section{On the client side}
+\subsection{Mobile Web App} % (fold)
+\label{sub:mobile_web_app}
+
+
+The next step on the front end development is to make the adaptation required in order to enable this application to run on mobile devices. The concept (as you can see from the sketches) is already there, doesn't differ too much from the desktop version which is designed to be easily changed but some tweaking is still required in order to make it work completely.
+Moreover, because of the use of IndexedDB technology not available on Safari Mobile we need to add a shim\footnote{Shim: s small library that transparently intercepts an API and changes the parameters passed, handles the operation itself, or redirects the operation elsewhere - Wikipedia} for it. IndexedDB over WebSQL\footnote{http://nparashuram.com/IndexedDBShim/} seems a reasonable choice because it would allow the application to work on both Safari, Chrome and Firefox mobile, giving the application a good browser support.
+% subsection mobile_web_app (end)
+\subsection{Full emailing feature} % (fold)
+\label{sub:full_emailing_feature}
+At this stage the application only support retrieval and classification of single email messages. Some important milestones in the future development of \emph{bettermail} are:
+\begin{itemize}
+  \item Client side support for emails thread (already supported by the backend)
+  \item Attachment download
+  \item Email reply implementation 
+\end{itemize}
+
+% subsection full_emailing_feature (end)
+\section{On the server side}
+
+Apart from the modification required in order to support the client side new feature we would like to experiment other solution, especially for the clustering algorithm. We plan to test Gibbs Latent Dirichlet Allocation - state of the art technique for free text clustering - against k-means. 
+Moreover, before the application to be ready for production we need to implement security mechanism to allow authentication: we propose OpenID with OAuth as the main login pattern both because it is widely supported by many email providers and because it simplify the work of storing private authentication data.
+
 \addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{biblio}
 
