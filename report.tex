@@ -49,7 +49,7 @@
 \includegraphics[width=5cm]{EURECOM_logo_quadri}
 \\[3cm]
 \textbf{\Huge{Managing Emails via a Smart Web Application}}
-\\[2cm]
+\\[1cm]
 \textbf{\textsc{\LARGE{Semester Project Report}}}
 \\[0.5cm]
 \LARGE{Alessandro Artoni}
@@ -97,16 +97,16 @@ Considering the development of a Web Application as important as the clustering 
 \begin{itemize}
 \item GMail (\texttt{http://mail.google.com}) is by far the leader in the market and is considered to be the first \emph{AJAX} web app to be developed. While it offers some ``intelligent'' service (attachment prediction, ``important'' email labeling) it should be credited for building a great UI along with a reliable system.'
 \item Alto Mail (\texttt{https://login.altomail.com/login/signin}) while still in closed beta and not available for the public (we didn't manage to try it out) aims to provide better understanding of email subscriptions: they state that Alto Mail understands that products like Facebook, Twitter, LinkedIn, Amazon, (and more?) regularly send notifications and receipts and make it easy to classify or group them. 
-\item As a UI starting point we studied MyMail (\texttt{http://dennyshess.ch/mymail/}) which is a mocked up email web client. Its interface allow to manage a lot of different email folders at the same time, which is why we chose it.
+\item As a UI starting point we studied MyMail (\texttt{http://dennyshess.ch/mymail/}) which is a mocked up email web client. Its interface allows to manage a lot of different email folders at the same time, which is why we chose it.
 \end{itemize}
 
 
 \chapter{Architectural overview}
 In the next chapters we are going to analyze the choice made while designing the system along with some technical description and specification about the implementation. This chapter is divided in three section which reflect the main parts of this project itself: the first part describes the overall architecture of the system, the second section details the implementation of the server-side part of the system together with the specifications of how the clustering algorithm works. In the last part we will describe the process of building the client side web application.
 
-Although this document tries to separate as much as possible this three aspect we must point out that both the design and the development of the applications were much more parallel than sequential and so are some technical considerations regarding the overall architecture.
+Although this document tries to separate as much as possible this three aspects we must point out that both the design and the development of the applications were much more parallel than sequential and so are some technical considerations regarding the overall architecture.
 
-The application \emph(bettermail) is designed with this goal: to provide an intelligent system capable of extracting semantic information from the emails body and use them to automatically classify (label) emails. We investigate how a named entities based clustering approach could prove itself in make the email experience better by automating the email labeling process. Moreover the project aims to give the user a simple and intuitive user interface to access those information.
+The application \emph{bettermail} is designed with this goal: to provide an intelligent system capable of extracting semantic information from the emails body and use them to automatically classify (label) emails. We investigate how a named entities based clustering approach could prove itself in make the email experience better by automating the email labeling process. Moreover the project aims to give the user a simple and intuitive user interface to access those information.
 \begin{figure}[H]
   \centering
   \includegraphics[width=15cm]{Architecture_Overview}
@@ -137,7 +137,7 @@ All these features where then exposed via RESTfull APIs, described in the next c
 One of the major problems encountered within this phase resides in the sequential nature of the IMAP protocol itself. The first approach was to create a new connection with the IMAP server for each requested resource. While this approach seems fine when tested in a manual request sequence flow it turned out that GMail, like many other providers, impose a very low limit on the maximum number of concurrent requests for the same account (it is not specified in the documentation but we experienced it to be around 10). This behavior force us to a fixed, sequential approach, which solved the problem.
 
 \section{The REST server}
-For simplifying the process of building our APIs we decided to use the \emph{express} Node.js framework.
+For simplifying the process of building our APIs we decided to use \emph{express}, a Node.js framework.
 Its architecture allows to define ``routes'' on which you can define the behavior for each separate HTTP verb. In addition, it provides a system for plug middleware in to intercept requests before routes handler(for example authenticating user before serving the request). We used this feature to implement a CORS\footnote{Cross-origin resource sharing, a new standard to allow web applications to safely bypass the same origin policy.} compliant web service.
 
 These are the main resources defined with the associated URI.Except for labels, the service supports the GET verb only because the first goal of the application is email reading and retrieving. Anyway the architecture would allow to easily add feature like deleting or sending new emails provided to use an SMTP module which at the moment we didn't yet wrote.
@@ -249,11 +249,11 @@ Each method exchanges information in the JSON format. The structure of the retur
 \end{itemize}
 
 \section{Named Entity Recognition}
-Each email content is first parsed by the NERD framework thanks to the node module provided by the team\footnote{https://github.com/giusepperizzo/nerd4node.}. The email body is then annotated with a set of information; for our work we considered two of them: \texttt{NerdType} which represent the ``high level'' class of the part of the text considered (e.g. Person, Thing, Date ...) and \texttt{label}, the specific entity recognized by NERD (e.g. Barack Obama, Personal Computer,the year 2012 ...). 
+Each email content is first parsed by the NERD framework thanks to the node module provided by the team\footnote{https://github.com/giusepperizzo/nerd4node.}. The email body is then annotated with a set of information; for our work we considered two of them: \texttt{NerdType} which represents the ``high level'' class of the part of the text considered (e.g. Person, Thing, Date ...) and \texttt{label}, the specific entity recognized by NERD (e.g. Barack Obama, Personal Computer,the year 2012 ...). 
 Those information are then stored permanently on the database for subsequent elaboration.
 
 \section{The clustering algorithm}
-The basic idea behind the approach to labeling emails is divided in three step: named entity recognition, starting centroids definition and clustering. This technique is inspired by that described by \cite{Manco2008} but it tries to exploit as much as possible the structured information from the email.
+The basic machine learning algorithm to labeling emails is divided in two step: starting centroids definition and clustering. This technique is inspired by that described by \cite{Manco2008} but it tries to exploit as much as possible the structured information from the email.
 
 
 
@@ -262,10 +262,10 @@ Instead of using a pure k-means approach with random starting centroids we choos
 For each of this base clusters (if they're bigger than $L/k$ with $k$ parameter) we pick a random element in it as one of the starting centroids for the next step.
 
 \subsection{K-Means}
-The last step in the clustering algorithm is to apply a slightly modified version of k-means with \emph{linkage} criterion. As described above: instead of starting from randomly selected centroids we tried to exploit some knowledge to improve the clusters quality. While the AHC was executed on a subset of emails for performances reason, we run k-means over the whole dataset.
+The last step in the clustering algorithm is to apply a slightly modified version of k-means with \emph{linkage} criterion. As described above: instead of starting from randomly selected centroids we tried to exploit some knowledge to improve the clusters quality. While the AHC was executed on a subset of emails for performance reasons, we run k-means over the whole dataset.
 
 \subsection{Metrics}
-We gradually added features ($F_{i}$) to the definitions of our distances functions (one for each algorithm):
+We gradually added features ($F_{i}$) to the definitions of our distance functions (one for each step):
 \begin{itemize}
 \item $F_{1}$: NERD type extracted (only if text field available, no HTML)
 \item $F_{2}$: Email address (in both \emph{from} and \emph{to} fields)
@@ -279,9 +279,9 @@ Each coefficient is then normalized and multiplied by a wheight $w_{i}$, dependi
 \[distance = 1 - \sum_{i=1}^{4} g(C_i)*w_i \]
 where $g$ is a function for normalizing values between 0 and 1 and $w$ is $[0.7, 0, 0, 0.3]$ for AHC and $[0.4, 0, 0.1, 0.5]$ for k-means.
 \chapter{Building the client}
-Multiple approaches on which type of client to develop are available. Among other ideas the two main possible approaches we consider are:
+Multiple approaches on which type of client to develop are available. Among other ideas the two main possible approaches we considered are:
 \begin{itemize}
-\item adding feature to an existing web client (GMail, Hotmail, etc...) by using either public APIs provided or by hacking the basic website by introducing script with browser extensions (Greasemonkey, Tampermonkey, ...)
+\item adding features to an existing web client (GMail, Hotmail, etc...) by using either public APIs provided or by hacking the basic website by introducing script with browser extensions (Greasemonkey, Tampermonkey, ...)
 \item creating a basic email web client from scratch
 \end{itemize}
 
@@ -291,7 +291,7 @@ For this reasons our final solution is a basic, web based, email client.
 \section{Design}
 
 The design proposed for the application follows three main principles: it should be simple, effective and (possibly) good looking.
-While most of the web applications in the wild use a similar approach for organizing emails label or folder, we think that a different design concept could strongly improve both the usability and the simplicity.
+While most of the web applications in the wild use a similar approach for organizing emails labels or folders, we think that a different design concept could strongly improve both the usability and the simplicity.
 
 The common approach nowadays is to have a big list of emails - the current folder - and some sort of sidebar or navigation menu for switching between folders. 
 We believe that in a scenario where the user make intense use of classification tool for dividing his email this design is suboptimal.
@@ -318,7 +318,7 @@ When a box is clicked it shows the classic GMail emails list with the option to 
   \caption{How to add labeling information to GMail}
   \label{fig:old2}
 \end{figure}
-In~\ref{fig:old2} is shown the basic idea of how to add intense labeling feature to google mail interface. Because there is no much space available in the page, we tried to exploit the blank one on the right, which is rather small but the only one available. It shows a small box, one for each label assigned to the email and a list of suggested labels, which were supposed to be extracted by the ``intelligent'' module of the system.
+In~\ref{fig:old2} is shown the basic idea of how to intensify labeling features in Google mail interface. Because there is no much space available in the page, we tried to exploit the blank one on the right, which is rather small but the only one available. It shows a small box, one for each label assigned to the email and a list of suggested labels, which were supposed to be extracted by the ``intelligent'' module of the system.
 
 Because the GMail plug-in solution turned out to be unfeasible, we had to discard it (while the basic grid system was already implemented as an AngularJS directive\footnote{This directive is available at https://github.com/artoale/griddy.}) as shown in ~\ref{fig:griddy}.
 \begin{figure}[H]
@@ -488,16 +488,15 @@ Because we do not have neither a large user base nor the resources required for 
 \chapter{Conclusions and Future work}
 We consider the first goal of this project reached: we give a proof of concept of how email managing can be innovated and adapted to users needs, both by providing new services and by new ideas in designing the user interface.
 
-We feel that, while emails are an ``old'' technology, their use is so intense - especially for professionals - that it mustn't be underestimated. As previously described a lot of players are actively participating in exploring novel ideas but it is not our interest to participate in this game as a competitor. 
-On the other side we strongly believe in the open source community - from where the tool we used for building \emph{bettermail} come - and we would like to give something back to this world. We plan to improve this application in both the client and the server side in order for anyone to be able to deploy and use it, experiment and eventually improve it.
-All the source code both for the server and the client is publicly available on GitHub.\footnote{Respectively at https://github.com/artoale/betteremail-server and https://github.com/artoale/bettermail-client}
+We feel that, while emails are an ``old'' technology, their use is so intense - especially for professionals - that it mustn't be underestimated. As previously described a lot of players are actively participating in exploring novel ideas in this field but it is not our interest to participate in this game as a competitor. 
+On the other side we strongly believe in the open source community - from where the tool we used for building \emph{bettermail} mostly come from - and we would like to give something back to this world. Apart from the evaluation described in the previous chapter, we plan to improve this application in both the client and the server side in order for anyone to be able to deploy and use it, experiment and eventually improve it. For that reason all the source code both for the server and the client is publicly available on GitHub.\footnote{Respectively at https://github.com/artoale/betteremail-server and https://github.com/artoale/bettermail-client}
 
 \section{On the client side}
 \subsection{Mobile Web App} % (fold)
 \label{sub:mobile_web_app}
 
 
-The next step on the front end development is to make the adaptation required in order to enable this application to run on mobile devices. The concept (as you can see from the sketches) is already there, doesn't differ too much from the desktop version which is designed to be easily changed but some tweaking is still required in order to make it work completely.
+The next step on the front end development is to make the adaptation required in order to enable this application to run on mobile devices. The concept (as you can see from the sketches) is already there, doesn't differ too much from the desktop version which is designed to be easily changed but some tweaking is still required in order to makes it work completely.
 Moreover, because of the use of IndexedDB technology not available on Safari Mobile we need to add a shim\footnote{Shim: s small library that transparently intercepts an API and changes the parameters passed, handles the operation itself, or redirects the operation elsewhere - Wikipedia.} for it. IndexedDB over WebSQL\footnote{http://nparashuram.com/IndexedDBShim/} seems a reasonable choice because it would allow the application to work on both Safari, Chrome and Firefox mobile, giving the application a good browser support.
 % subsection mobile_web_app (end)
 \subsection{Full emailing feature} % (fold)
